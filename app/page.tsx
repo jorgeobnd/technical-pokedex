@@ -29,9 +29,11 @@ export default function Home() {
 
   //UseEffect to fetch data on page load
   useEffect(() => {
-    fetchRegions();
-    fetchTypes();
-    fetchAllPokemon();
+    const initializePokedex = async () => {
+      await Promise.all([fetchRegions(), fetchTypes(), fetchAllPokemon()]);
+      setLoading(false);
+    };
+    initializePokedex();
   }, []);
 
   
@@ -92,11 +94,8 @@ export default function Home() {
         const pokedexData = await pokedexResponse.json()
         const pokemonEntries = pokedexData.pokemon_entries
 
-        const regionPokemon = pokemon.filter((pokemon) =>
-          pokemonEntries.some((entry: { entry_number: number }) => entry.entry_number === pokemon.id),
-        )
+        return pokemon.filter((pokemon) => pokemonEntries.some((entry: { pokemon_species: { name: string } }) => entry.pokemon_species.name === pokemon.name))
 
-        return regionPokemon
       } catch (error) {
         console.error("Error fetching pokemon by region:", error)
         return []
@@ -108,6 +107,7 @@ export default function Home() {
   )
 
   const filterPokemon = useCallback( async() => {
+    setLoading(true)
     let filtered = pokemon
 
     if(selectedRegion !== "all") {
@@ -117,8 +117,9 @@ export default function Home() {
     if(selectedType !== "all") {
       filtered = filtered.filter((p) => p.types.some((t) => t.type.name === selectedType))
     }
-
+ 
     setFilteredPokemon(filtered)
+    setLoading(false)
   }, [selectedRegion, selectedType, pokemon, fetchPokemonByRegion])
 
   useEffect(() => {
