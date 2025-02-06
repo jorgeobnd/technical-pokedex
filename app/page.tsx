@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PokemonCard from "./components/PokemonCard";
+import RegionFilter from "./components/RegionFilter";
 
 interface Pokemon {
   id: number;
@@ -18,18 +19,30 @@ interface Region {
 
 export default function Home() {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [region, setRegion] = useState<Region[]>();
+  const [regions, setRegions] = useState<Region[]>();
   const [selectedRegion, setSelectedRegion] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
+  //UseEffect to fetch data on page load
+  useEffect(() => {
+    fetchRegions();
+  }, []);
 
+  useEffect(() => {
+    if(selectedRegion){
+      fetchPokemonByRegion(selectedRegion);
+    } else {
+      fetchAllPokemon();
+    }
+  }, [selectedRegion]);
+  
   //Fetching data from the API
   //Fetch Regions
   const fetchRegions = async () => {
     try {
       const reponse = await fetch("https://pokeapi.co/api/v2/region/");
       const data = await reponse.json();
-      setRegion(data.results);
+      setRegions(data.results);
     } catch (error) {
       console.error("Error fetching regions:", error);
     }
@@ -59,29 +72,51 @@ export default function Home() {
   //Fetching the selected region
   const fetchPokemonByRegion = async (regionName: string) => {
     setLoading(true);
-    try{
-      const regionResponse = await fetch(`https://pokeapi.co/api/v2/region/${regionName}/`);
+    try {
+      const regionResponse = await fetch(
+        `https://pokeapi.co/api/v2/region/${regionName}/`
+      );
       const regionData = await regionResponse.json();
-      const pokedexResonse = await fetch(regionData.pokedexes[0].url)
+      const pokedexResonse = await fetch(regionData.pokedexes[0].url);
       const pokedexData = await pokedexResonse.json();
       const pokemonEntries = pokedexData.pokemon_entries;
 
       const pokemonDetails = await Promise.all(
-        pokemonEntries.map(async (entry: { pokemon_species: {url: string} }) => {
-          const speciesRes = await fetch(entry.pokemon_species.url);
-          const speciesData = await speciesRes.json();
-          const pokemonRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesData.id}`);
-          return pokemonRes.json();
-        })
+        pokemonEntries.map(
+          async (entry: { pokemon_species: { url: string } }) => {
+            const speciesRes = await fetch(entry.pokemon_species.url);
+            const speciesData = await speciesRes.json();
+            const pokemonRes = await fetch(
+              `https://pokeapi.co/api/v2/pokemon/${speciesData.id}`
+            );
+            return pokemonRes.json();
+          }
+        )
       );
       setPokemon(pokemonDetails);
-    }
-    catch(error){
+    } catch (error) {
       console.error("Error fetching pokemon by region:", error);
     }
     setLoading(false);
-  }
+  };
 
-
-  return <></>;
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8 text-center">Pokédex</h1>
+      <RegionFilter
+        regions={regions || []}
+        selectedRegion={selectedRegion}
+        onRegionChange={setSelectedRegion}
+      />
+      {loading ? (
+        <div className="text-center mt-8">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
+          {pokemon.map((pokemon) => (
+            <PokemonCard key={pokemon.id} pokemon={pokemon} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

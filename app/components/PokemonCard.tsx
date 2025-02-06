@@ -17,7 +17,7 @@ export default function PokemonCard({ pokemon }: PokemonCardProps) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="p-4">
-        <CardTitle className="text-lg capitalize">Pokemon</CardTitle>
+        <CardTitle className="text-lg capitalize">{pokemon.name}</CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-4 flex justify-center">
         <Image
