@@ -13,18 +13,19 @@ interface PokemonCardProps {
   pokemon: Pokemon;
 }
 
-export default function PokemonCard() {
+export default function PokemonCard({ pokemon }: PokemonCardProps) {
   return (
     <Card className="overflow-hidden">
-      <CardHeader>
-        <CardTitle>Pokemon</CardTitle>
+      <CardHeader className="p-4">
+        <CardTitle className="text-lg capitalize">Pokemon</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-4 flex justify-center">
         <Image
-          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png`}
-          alt="Pokemon"
-          width={200}
-          height={200}
+        src={pokemon.sprites.front_default || "/placeholder.svg"}
+        alt={pokemon.name}
+        width={120}
+        height={120}
+        className="w-30 h-30 object-contain"
         />
       </CardContent>
     </Card>
