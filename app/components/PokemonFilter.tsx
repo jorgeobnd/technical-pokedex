@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Region {
   name: string;
@@ -24,7 +30,7 @@ export default function PokemonFilter({
   onTypeChange,
 }: PokemonFilterProps) {
   return (
-    <div>
+    <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
       <Select value={selectedRegion} onValueChange={onRegionChange}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Select a region" />
@@ -59,7 +65,9 @@ export default function PokemonFilter({
           onRegionChange("all");
         }}
         variant="outline"
-      >Reset Filters</Button>
+      >
+        Reset Filters
+      </Button>
     </div>
-  )
+  );
 }

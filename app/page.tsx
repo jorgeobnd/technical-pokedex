@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PokemonCard from "./components/PokemonCard";
-import RegionFilter from "./components/RegionFilter";
+import PokemonFilter from "./components/PokemonFilter";
 
 interface Pokemon {
   id: number;
@@ -10,31 +10,30 @@ interface Pokemon {
   sprites: {
     front_default: string;
   };
+  types: Array<{ type: { name: string } }>;
 }
 
 interface Region {
   name: string;
-  url: number;
+  url: string;
 }
 
 export default function Home() {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
+  const [filteredPokemon, setFilteredPokemon] = useState<Pokemon[]>([]);
   const [regions, setRegions] = useState<Region[]>();
-  const [selectedRegion, setSelectedRegion] = useState<string>("");
+  const [types, setTypes] = useState<string[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(false);
 
   //UseEffect to fetch data on page load
   useEffect(() => {
     fetchRegions();
+    fetchTypes();
+    fetchAllPokemon();
   }, []);
 
-  useEffect(() => {
-    if(selectedRegion){
-      fetchPokemonByRegion(selectedRegion);
-    } else {
-      fetchAllPokemon();
-    }
-  }, [selectedRegion]);
   
   //Fetching data from the API
   //Fetch Regions
@@ -45,6 +44,18 @@ export default function Home() {
       setRegions(data.results);
     } catch (error) {
       console.error("Error fetching regions:", error);
+    }
+  };
+
+  //Fetch Types
+  const fetchTypes = async () => {
+    try {
+      const reponse = await fetch("https://pokeapi.co/api/v2/type/");
+      const data = await reponse.json();
+      setTypes(data.results.map((type: { name: string }) => type.name)
+      );
+    } catch (error) {
+      console.error("Error fetching types:", error);
     }
   };
 
@@ -63,6 +74,7 @@ export default function Home() {
         })
       );
       setPokemon(pokemonDetails);
+      setFilteredPokemon(pokemonDetails);
     } catch (error) {
       console.error("Error fetching pokemon:", error);
     }
@@ -70,49 +82,73 @@ export default function Home() {
   };
 
   //Fetching the selected region
-  const fetchPokemonByRegion = async (regionName: string) => {
-    setLoading(true);
-    try {
-      const regionResponse = await fetch(
-        `https://pokeapi.co/api/v2/region/${regionName}/`
-      );
-      const regionData = await regionResponse.json();
-      const pokedexResonse = await fetch(regionData.pokedexes[0].url);
-      const pokedexData = await pokedexResonse.json();
-      const pokemonEntries = pokedexData.pokemon_entries;
+  const fetchPokemonByRegion = useCallback(
+    async (regionName: string) => {
+      setLoading(true)
+      try {
+        const regionResponse = await fetch(`https://pokeapi.co/api/v2/region/${regionName}`)
+        const regionData = await regionResponse.json()
+        const pokedexResponse = await fetch(regionData.pokedexes[0].url)
+        const pokedexData = await pokedexResponse.json()
+        const pokemonEntries = pokedexData.pokemon_entries
 
-      const pokemonDetails = await Promise.all(
-        pokemonEntries.map(
-          async (entry: { pokemon_species: { url: string } }) => {
-            const speciesRes = await fetch(entry.pokemon_species.url);
-            const speciesData = await speciesRes.json();
-            const pokemonRes = await fetch(
-              `https://pokeapi.co/api/v2/pokemon/${speciesData.id}`
-            );
-            return pokemonRes.json();
-          }
+        const regionPokemon = pokemon.filter((pokemon) =>
+          pokemonEntries.some((entry: { entry_number: number }) => entry.entry_number === pokemon.id),
         )
-      );
-      setPokemon(pokemonDetails);
-    } catch (error) {
-      console.error("Error fetching pokemon by region:", error);
+
+        return regionPokemon
+      } catch (error) {
+        console.error("Error fetching pokemon by region:", error)
+        return []
+      } finally {
+        setLoading(false)
+      }
+    },
+    [pokemon],
+  )
+
+  const filterPokemon = useCallback( async() => {
+    let filtered = pokemon
+
+    if(selectedRegion !== "all") {
+      filtered = await fetchPokemonByRegion(selectedRegion)
     }
-    setLoading(false);
+
+    if(selectedType !== "all") {
+      filtered = filtered.filter((p) => p.types.some((t) => t.type.name === selectedType))
+    }
+
+    setFilteredPokemon(filtered)
+  }, [selectedRegion, selectedType, pokemon, fetchPokemonByRegion])
+
+  useEffect(() => {
+    filterPokemon()
+  }, [filterPokemon])
+  
+  const handleRegionChange = (region: string) => {
+    setSelectedRegion(region);
+  };
+
+  const handleTypeChange = (type: string) => {
+    setSelectedType(type);
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-center">Pokédex</h1>
-      <RegionFilter
+      <PokemonFilter
         regions={regions || []}
         selectedRegion={selectedRegion}
-        onRegionChange={setSelectedRegion}
+        onRegionChange={handleRegionChange}
+        types={types}
+        selectedType={selectedType}
+        onTypeChange={handleTypeChange}
       />
       {loading ? (
         <div className="text-center mt-8">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-          {pokemon.map((pokemon) => (
+          {filteredPokemon.map((pokemon) => (
             <PokemonCard key={pokemon.id} pokemon={pokemon} />
           ))}
         </div>
