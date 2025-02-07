@@ -38,11 +38,11 @@ Follow these steps to set up the project locally on your machine.
   
 2. **Install Dependencies**:
 ```bash
-    npm install
-    npx shadcn@latest add badge
-    npx shadcn@latest add card
-    npx shadcn@latest add button
-    npx shadcn@latest add select
+  npm install
+  npx shadcn@latest add badge
+  npx shadcn@latest add card
+  npx shadcn@latest add button
+  npx shadcn@latest add select
 ```
 3.**Run project**
 ```bash
