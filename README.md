@@ -1,6 +1,6 @@
 # Pokedex - Technical Test
 
-Welcome to the ** Pokedex**! This is a web application that allows you to browse and explore information about Pokémon. Built with modern web technologies, this app provides a clean and intuitive interface for Pokémon enthusiasts.
+Welcome to the **Pokedex**! This is a web application that allows you to browse and explore information about Pokémon. Built with modern web technologies, this app provides a clean and intuitive interface for Pokémon enthusiasts.
 
 ![Pokedex Screenshot](./public/image/app_image.png)
 
@@ -33,15 +33,16 @@ Follow these steps to set up the project locally on your machine.
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/jorgeobnd/technical-pokedex.git
- cd technical-pokedex
-```
+   cd technical-pokedex
+  ```
+  
 2. **Install Dependencies**:
 ```bash
-npm install
-npx shadcn@latest add badge
-npx shadcn@latest add card
-npx shadcn@latest add button
-npx shadcn@latest add select
+    npm install
+    npx shadcn@latest add badge
+    npx shadcn@latest add card
+    npx shadcn@latest add button
+    npx shadcn@latest add select
 ```
 3.**Run project**
 ```bash
