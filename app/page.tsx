@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import PokemonCard from "./components/PokemonCard";
 import PokemonFilter from "./components/PokemonFilter";
+import { Loader2 } from "lucide-react";
 
 interface Pokemon {
   id: number;
@@ -36,7 +37,6 @@ export default function Home() {
     initializePokedex();
   }, []);
 
-  
   //Fetching data from the API
   //Fetch Regions
   const fetchRegions = async () => {
@@ -54,8 +54,7 @@ export default function Home() {
     try {
       const reponse = await fetch("https://pokeapi.co/api/v2/type/");
       const data = await reponse.json();
-      setTypes(data.results.map((type: { name: string }) => type.name)
-      );
+      setTypes(data.results.map((type: { name: string }) => type.name));
     } catch (error) {
       console.error("Error fetching types:", error);
     }
@@ -86,46 +85,54 @@ export default function Home() {
   //Fetching the selected region
   const fetchPokemonByRegion = useCallback(
     async (regionName: string) => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const regionResponse = await fetch(`https://pokeapi.co/api/v2/region/${regionName}`)
-        const regionData = await regionResponse.json()
-        const pokedexResponse = await fetch(regionData.pokedexes[0].url)
-        const pokedexData = await pokedexResponse.json()
-        const pokemonEntries = pokedexData.pokemon_entries
+        const regionResponse = await fetch(
+          `https://pokeapi.co/api/v2/region/${regionName}`
+        );
+        const regionData = await regionResponse.json();
+        const pokedexResponse = await fetch(regionData.pokedexes[0].url);
+        const pokedexData = await pokedexResponse.json();
+        const pokemonEntries = pokedexData.pokemon_entries;
 
-        return pokemon.filter((pokemon) => pokemonEntries.some((entry: { pokemon_species: { name: string } }) => entry.pokemon_species.name === pokemon.name))
-
+        return pokemon.filter((pokemon) =>
+          pokemonEntries.some(
+            (entry: { pokemon_species: { name: string } }) =>
+              entry.pokemon_species.name === pokemon.name
+          )
+        );
       } catch (error) {
-        console.error("Error fetching pokemon by region:", error)
-        return []
+        console.error("Error fetching pokemon by region:", error);
+        return [];
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [pokemon],
-  )
+    [pokemon]
+  );
 
-  const filterPokemon = useCallback( async() => {
-    setLoading(true)
-    let filtered = pokemon
+  const filterPokemon = useCallback(async () => {
+    setLoading(true);
+    let filtered = pokemon;
 
-    if(selectedRegion !== "all") {
-      filtered = await fetchPokemonByRegion(selectedRegion)
+    if (selectedRegion !== "all") {
+      filtered = await fetchPokemonByRegion(selectedRegion);
     }
 
-    if(selectedType !== "all") {
-      filtered = filtered.filter((p) => p.types.some((t) => t.type.name === selectedType))
+    if (selectedType !== "all") {
+      filtered = filtered.filter((p) =>
+        p.types.some((t) => t.type.name === selectedType)
+      );
     }
- 
-    setFilteredPokemon(filtered)
-    setLoading(false)
-  }, [selectedRegion, selectedType, pokemon, fetchPokemonByRegion])
+
+    setFilteredPokemon(filtered);
+    setLoading(false);
+  }, [selectedRegion, selectedType, pokemon, fetchPokemonByRegion]);
 
   useEffect(() => {
-    filterPokemon()
-  }, [filterPokemon])
-  
+    filterPokemon();
+  }, [filterPokemon]);
+
   const handleRegionChange = (region: string) => {
     setSelectedRegion(region);
   };
@@ -135,25 +142,31 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 text-center">Pokédex</h1>
-      <PokemonFilter
-        regions={regions || []}
-        selectedRegion={selectedRegion}
-        onRegionChange={handleRegionChange}
-        types={types}
-        selectedType={selectedType}
-        onTypeChange={handleTypeChange}
-      />
-      {loading ? (
-        <div className="text-center mt-8">Loading...</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-          {filteredPokemon.map((pokemon) => (
-            <PokemonCard key={pokemon.id} pokemon={pokemon} />
-          ))}
+    <div className="min-h-screen bg-gradient-to-b from-red-500 to-yellow-500 p-8">
+      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
+        <div className="p-8">
+          <h1 className="text-5xl font-bold mb-8 text-center text-red-600">Pokédex</h1>
+          <PokemonFilter
+            regions={regions || []}
+            selectedRegion={selectedRegion}
+            onRegionChange={handleRegionChange}
+            types={types}
+            selectedType={selectedType}
+            onTypeChange={handleTypeChange}
+          />
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-12 w-12 animate-spin text-red-600" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+              {filteredPokemon.map((poke) => (
+                <PokemonCard key={poke.id} pokemon={poke} />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
-  );
+  )
 }
