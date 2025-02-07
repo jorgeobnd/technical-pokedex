@@ -45,7 +45,7 @@ Follow these steps to set up the project locally on your machine.
     npx shadcn@latest add select
   ```
 
-3.**Run project**
+3. **Run project**
   ```bash
     npm run dev
   ```
