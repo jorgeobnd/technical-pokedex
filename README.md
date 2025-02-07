@@ -31,13 +31,13 @@ Follow these steps to set up the project locally on your machine.
 ### Installation
 
 1. **Clone the repository**:
-   ```bash
+  ```bash
    git clone https://github.com/jorgeobnd/technical-pokedex.git
    cd technical-pokedex
   ```
   
 2. **Install Dependencies**:
-  ```
+  ```bash
     npm install
     npx shadcn@latest add badge
     npx shadcn@latest add card
